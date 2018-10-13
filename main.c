@@ -18,7 +18,21 @@ int check[128],num[39]={0};
 #define UNKNOWN 999
 //enum{WHILE=258,IF,ELSE,FOR,RET,INT,ID,EQU,GEQU,LEQU,ERROR};
 enum{$SYMBOL=1,$CONSTANT,$INT,$IF,$ELSE,$WHILE,$FOR,$READ,$WRITE,$ADD,$SUB,$MUL,$DIV,$L,$LE,$G,$GE,$NE,$E,$ASSIGN,$LEAP,$REAP,$COM,$SEM, $ERROR,$AND,$OR};
-char *keywords[]={"while","if","else","for","return",0};
+char *keywords[]={"int","if","else","while","for","read","write",0};
+char * classcifier(int i)   {
+    if(i==1)
+        return "标识符";
+    else if(i>=3&&i<=9)
+        return "关键字";
+    else if(i==2)
+        return "常数";
+    else if((i>=10&&i<=19)||i==26||i==35||i==38||i==39)
+        return "运算符";
+    else if(i==23||i==24||i==30)
+        return "界符";
+    else
+        return "其他字符";
+}
 void addChar()
 {
     if(lexLen<=MAX_LEN-2)
@@ -178,7 +192,7 @@ void checkKeywords(char* pword)
         char* pkeyword = keywords[i];
         if(strcmp(pword,pkeyword) == 0)
         {
-            nextToken = 258 + i;
+            nextToken = 3 + i;
             return;
         }
         i++;
@@ -212,7 +226,7 @@ int lexer()
                 addChar();
                 getChar();
             }
-            nextToken = $INT;
+            nextToken = $CONSTANT;
             break;
             
             
@@ -229,11 +243,11 @@ int lexer()
             break;
     }
     if(nextToken != 27&&nextToken!=EOF)
-        printf("line %02d:(%02d,%03d) (class): %s\n",line,nextToken,num[nextToken],lexeme);
+        printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
     else if(nextToken==27)
-        printf("line %02d:(%02d,%03d) (class): \\n \n",line-1,nextToken,num[nextToken]);
+        printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
     else
-        printf("line %02d:(%02d,001) (class): %s\n",line,nextToken,lexeme);
+        printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
     
     return nextToken;
 }
