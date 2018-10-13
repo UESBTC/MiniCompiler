@@ -1,74 +1,56 @@
-//
-//  main.c
-//  WordAnalysier
-//
-//  Created by 陈泽宁 on 2018/10/12.
-//  Copyright © 2018 陈泽宁. All rights reserved.
-//
-/*2018-10-12
- 主要修改之处：将 getc() 改成了自定义的 getnbc() [并没有什么用] 见33、56、57、63行
- 将 空格的判断机制函数 getNonBlank() 修改成识别 空格 与 制表符，从而捕获 换行符 见80行
- */
-/*2018-10-13
- 行数安排上了
- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <String.h>
-int line=1;
-int charClass;
-#define MAX_LEN 100
-char lexeme[MAX_LEN];
-char nextChar;
+#include <string.h>
+int line = 1;
+int charClass;               //字符的类型
+#define MAX_LEN 1000          //存储字符的数组的最大值
+char lexeme[MAX_LEN];        //存储字符的数组
+char nextChar;               //nextChar和next2Char配合，不断向后读取字符，（见getChar()函数）
 char next2Char;
-int lexLen;
-int token;
+int lexLen;                  //目前读到的字符长度，如果超出MAX_LEN-2 (?),则提示过长(见addChar())
+//int token;
 int nextToken;
 FILE *inFile;
-
+int check[128],num[39]={0};
 #define LETTER 0
 #define DIGIT 1
 #define UNKNOWN 999
-enum{WHILE=258,IF,ELSE,FOR,RET,INT,ID,EQU,GEQU,LEQU,ERROR};
+//enum{WHILE=258,IF,ELSE,FOR,RET,INT,ID,EQU,GEQU,LEQU,ERROR};
+enum{$SYMBOL=1,$CONSTANT,$INT,$IF,$ELSE,$WHILE,$FOR,$READ,$WRITE,$ADD,$SUB,$MUL,$DIV,$L,$LE,$G,$GE,$NE,$E,$ASSIGN,$LEAP,$REAP,$COM,$SEM, $ERROR,$AND,$OR};
 char *keywords[]={"while","if","else","for","return",0};
-
-char getnbc()   {
-    char ch = fgetc(inFile);
-    while (ch == ' ' || ch == '\t') ch = fgetc(inFile);    //略过空格和制表符
-    return ch;
-}
-
-/*addChar()
- 存储nextChar
- */
-void addChar()  {
-    if(lexLen<=MAX_LEN-2)   {
+void addChar()
+{
+    if(lexLen<=MAX_LEN-2)
+    {
         lexeme[lexLen++]=nextChar;
         lexeme[lexLen]=0;
     }
     else
         printf("ERROR:lexme is too long. \n");
 }
-/*
- getChar()
- 第一次运行：读入两个字符
- 其他：nextChar next2Char后挪一位 判断nextChar的charClass并存储
- */
-void getChar()  {
+
+void getChar()
+{
     static int firstRun=1;
-    if(firstRun)    {
-        nextChar=getnbc();
-        next2Char=getnbc();
+    if(firstRun)
+    {
+        nextChar=getc(inFile);
+        next2Char=getc(inFile);
         firstRun=0;
-    }   else    {
+    }
+    else
+    {
         nextChar=next2Char;
-        next2Char=getnbc();
+        next2Char=getc(inFile);
     }
     
-    if(nextChar==EOF)   {
+    if(nextChar==EOF)
+    {
         charClass=EOF;
-    }   else    {
+    }
+    else
+    {
         if(isalpha(nextChar))
             charClass=LETTER;
         else if(isdigit(nextChar))
@@ -77,65 +59,125 @@ void getChar()  {
             charClass=UNKNOWN;
     }
 }
-void getNonBlank()  {
-    while (nextChar==' '|| nextChar=='\t') {
+void getNonBlank()
+{
+    while (nextChar == ' ' || nextChar == '\t') { //修改空白符号的判断标准，避免isspace()吃掉换行符
         getChar();
     }
 }
 
-int checkSymbol(char ch, char nextCh)   {
-    switch(ch)  {
-        case'(':case')':case';':case'+':case'-':
+int checkSymbol(char ch, char nextCh)
+{
+    switch(ch)
+    {
+        case'+':case'-':case'*':case'/':case'(':case')':case'{':case'}':
+        case'#':case';':case',':case'.':
             addChar();
-            nextToken=ch;
+            nextToken=check[ch];
+            break;
+        case'\'':
+            addChar();
+            nextToken=32;
+            break;
+        case'\"':
+            addChar();
+            nextToken=33;
+            break;
+        case'%':
+            addChar();
+            nextToken=34;
+            break;
+        case'\\':
+            addChar();
+            nextToken=35;
             break;
         case'=':
             addChar();
-            nextToken=ch;
-            if(nextCh == '=')   {
+            nextToken=check[ch];
+            if(nextCh == '=')
+            {
                 getChar();
                 addChar();
-                nextToken=EQU;
+                nextToken=$E;
             }
             break;
         case'>':
             addChar();
-            nextToken=ch;
-            if(nextCh == '=')   {
+            nextToken=check[ch];
+            if(nextCh == '=')
+            {
                 getChar();
                 addChar();
-                nextToken=GEQU;
+                nextToken=$GE;
             }
             break;
         case'<':
             addChar();
-            nextToken=ch;
-            if(nextCh == '=')   {
+            nextToken=check[ch];
+            if(nextCh == '=')
+            {
                 getChar();
                 addChar();
-                nextToken=LEQU;
+                nextToken=$LE;
             }
             break;
-        case '\n':
+        case'!':
             addChar();
-            line++;
+            nextToken=check[ch];
+            if(nextCh == '=')
+            {
+                getChar();
+                addChar();
+                nextToken=18;
+            }
+            break;
+        case'&':
+            addChar();
+            nextToken=check[ch];
+            if(nextCh == '&')
+            {
+                getChar();
+                addChar();
+                nextToken=25;
+            }
+            break;
+        case'|':
+            addChar();
+            nextToken=check[ch];
+            if(nextCh == '|')
+            {
+                getChar();
+                addChar();
+                nextToken=26;
+            }
+            break;
+            
+        case'\n':
+            addChar();
             nextToken=27;
+            line++;
             break;
         case EOF:
             addChar();
             nextToken=EOF;
         default:
-            printf("ERROR:unknown character '%c'.\n",ch);
-            nextToken=ERROR;
+            addChar();
+            printf("ERROR:Unknown Character:%c\n",nextChar);
+            nextToken=$ERROR;
     }
+    if(nextToken!=EOF)
+        num[nextToken]++;
     return nextToken;
 }
 
-void checkKeywords(char* pword) {
+void checkKeywords(char* pword)
+{
     int i = 0;
-    while(keywords[i] != 0) {
+    while(keywords[i] != 0)
+    {
         char* pkeyword = keywords[i];
-        if(strcmp(pword,pkeyword) == 0) {
+        if(strcmp(pword,pkeyword) == 0)
+        {
             nextToken = 258 + i;
             return;
         }
@@ -143,18 +185,21 @@ void checkKeywords(char* pword) {
     }
 }
 
-int lexer() {
+int lexer()
+{
     lexLen = 0;
     getNonBlank();
-    switch(charClass)   {
+    switch(charClass)
+    {
         case LETTER:
             addChar();
             getChar();
-            while(charClass == LETTER || charClass == DIGIT)    {
+            while(charClass == LETTER || charClass == DIGIT)
+            {
                 addChar();
                 getChar();
             }
-            nextToken = ID;
+            nextToken = $SYMBOL;
             
             //检查当前标识符是否是关键字
             checkKeywords(lexeme);
@@ -162,11 +207,12 @@ int lexer() {
         case DIGIT:
             addChar();
             getChar();
-            while(charClass == DIGIT)   {
+            while(charClass == DIGIT)
+            {
                 addChar();
                 getChar();
             }
-            nextToken = INT;
+            nextToken = $INT;
             break;
             
             
@@ -176,31 +222,56 @@ int lexer() {
             break;
         case EOF:
             nextToken = EOF;
-            lexeme[1] = 'E';
+            lexeme[0] = 'E';
             lexeme[1] = 'O';
             lexeme[2] = 'F';
             lexeme[3] = 0;
             break;
     }
+    if(nextToken != 27&&nextToken!=EOF)
+        printf("line %02d:(%02d,%03d) (class): %s\n",line,nextToken,num[nextToken],lexeme);
+    else if(nextToken==27)
+        printf("line %02d:(%02d,%03d) (class): \\n \n",line-1,nextToken,num[nextToken]);
+    else
+        printf("line %02d:(%02d,001) (class): %s\n",line,nextToken,lexeme);
     
-    printf("line %02d:(%03d,numbers) (class):%s\n",line,nextToken,lexeme);
     return nextToken;
 }
 
-
-void main(int argc,const char * argv[]) {
-    if (argc<2) {
+void main(int argc, const char * argv[]) {
+    check['+']=10;
+    check['-']=11;
+    check['*']=12;
+    check['/']=13;
+    check['<']=14;
+    check['>']=16;
+    check['=']=20;
+    check['(']=21;
+    check[')']=22;
+    check[',']=23;
+    check[';']=24;
+    check['#']=28;
+    check['.']=29;
+    check['{']=30;
+    check['}']=31;
+    check['!']=36;
+    check['&']=37;
+    check['|']=38;
+    if (argc<2)
+    {
         printf("ERROR:input file name is needed.\n");
         exit(0);
     }
     inFile=fopen(argv[1], "r");
-    if (inFile==NULL)   {
+    if (inFile==NULL)
+    {
         printf("ERROR:can not open file.\n");
         exit(0);
     }
     
     getChar();
-    while (nextToken!=EOF)  {
+    while (nextToken!=EOF)
+    {
         lexer();
     }
     
