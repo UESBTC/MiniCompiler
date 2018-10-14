@@ -12,13 +12,17 @@ int lexLen;                  //目前读到的字符长度，如果超出MAX_LEN
 //int token;
 int nextToken;
 FILE *inFile;
-int check[128],num[39]={0};
+FILE *lex;
+FILE *systable;
+FILE *error;
+int num[39]={0};
 #define LETTER 0
 #define DIGIT 1
 #define UNKNOWN 999
 //enum{WHILE=258,IF,ELSE,FOR,RET,INT,ID,EQU,GEQU,LEQU,ERROR};
-enum{$SYMBOL=1,$CONSTANT,$INT,$IF,$ELSE,$WHILE,$FOR,$READ,$WRITE,$ADD,$SUB,$MUL,$DIV,$L,$LE,$G,$GE,$NE,$E,$ASSIGN,$LEAP,$REAP,$COM,$SEM, $ERROR,$AND,$OR};
-char *keywords[]={"int","if","else","while","for","read","write",0};
+enum{$SYMBOL=1,$CONSTANT,$INT,$IF,$ELSE,$WHILE,$FOR,$READ,$WRITE,$ADD,$SUB,$MUL,$DIV,$L,$LE,$G,$GE,$NE,$E,$ASSIGN,$LPAR,$RPAR,$COM,$SEM,$AND,$OR,$NEXTLINE,$SHARP,$COLON,$LB,$RB,$AP,$QM,$PR,$BS,$NOT,$SA,$SO,$DOT,$ERROR,$SWITCH,$CASE,$DEFAULT,$VOID,$RETURN,$CONTINUE,$BREAK};
+char *keywords[]={"int","if","else","while","for","read","write","switch","case","switch","case","default","void","return","continue","break",0};
+
 char * classcifier(int i)   {
     if(i==1)
         return "标识符";
@@ -84,30 +88,73 @@ int checkSymbol(char ch, char nextCh)
 {
     switch(ch)
     {
-        case'+':case'-':case'*':case'/':case'(':case')':case'{':case'}':
-        case'#':case';':case',':case'.':
+        case'+':
             addChar();
-            nextToken=check[ch];
+            nextToken=$ADD;
+            break;
+        case'-':
+            addChar();
+            nextToken=$SUB;
+            break;
+        case'*':
+            addChar();
+            nextToken=$MUL;
+            break;
+        case'/':
+            addChar();
+            nextToken=$DIV;
+            break;
+        case'(':
+            addChar();
+            nextToken=$LPAR;
+            break;
+        case')':
+            addChar();
+            nextToken=$RPAR;
+            break;
+        case'{':
+            addChar();
+            nextToken=$LB;
+            break;
+        case'}':
+            addChar();
+            nextToken=$RB;
+            break;
+        case'#':
+            addChar();
+            nextToken=$SHARP;
+            break;
+        case';':
+            addChar();
+            nextToken=$SEM;
+            break;
+        case',':
+            addChar();
+            nextToken=$COM;
+            break;
+        case'.':
+            addChar();
+            nextToken=$DOT;
             break;
         case'\'':
             addChar();
-            nextToken=32;
+            nextToken=$AP;
             break;
         case'\"':
             addChar();
-            nextToken=33;
+            nextToken=$QM;
             break;
         case'%':
             addChar();
-            nextToken=34;
+            nextToken=$PR;
             break;
         case'\\':
             addChar();
-            nextToken=35;
+            nextToken=$BS;
             break;
         case'=':
             addChar();
-            nextToken=check[ch];
+            nextToken=$ASSIGN;
             if(nextCh == '=')
             {
                 getChar();
@@ -117,7 +164,7 @@ int checkSymbol(char ch, char nextCh)
             break;
         case'>':
             addChar();
-            nextToken=check[ch];
+            nextToken=$G;
             if(nextCh == '=')
             {
                 getChar();
@@ -127,7 +174,7 @@ int checkSymbol(char ch, char nextCh)
             break;
         case'<':
             addChar();
-            nextToken=check[ch];
+            nextToken=$L;
             if(nextCh == '=')
             {
                 getChar();
@@ -137,38 +184,38 @@ int checkSymbol(char ch, char nextCh)
             break;
         case'!':
             addChar();
-            nextToken=check[ch];
+            nextToken=$NOT;
             if(nextCh == '=')
             {
                 getChar();
                 addChar();
-                nextToken=18;
+                nextToken=$NE;
             }
             break;
         case'&':
             addChar();
-            nextToken=check[ch];
+            nextToken=$SA;
             if(nextCh == '&')
             {
                 getChar();
                 addChar();
-                nextToken=25;
+                nextToken=$AND;
             }
             break;
         case'|':
             addChar();
-            nextToken=check[ch];
+            nextToken=$SO;
             if(nextCh == '|')
             {
                 getChar();
                 addChar();
-                nextToken=26;
+                nextToken=$OR;
             }
             break;
             
         case'\n':
             addChar();
-            nextToken=27;
+            nextToken=$NEXTLINE;
             line++;
             break;
         case EOF:
@@ -191,9 +238,14 @@ void checkKeywords(char* pword)
     {
         char* pkeyword = keywords[i];
         if(strcmp(pword,pkeyword) == 0)
-        {
+        {   if(i<7) {
             nextToken = 3 + i;
             return;
+        }   else    {
+            nextToken=41+i;
+            return;
+        }
+            
         }
         i++;
     }
@@ -242,35 +294,27 @@ int lexer()
             lexeme[3] = 0;
             break;
     }
-    if(nextToken != 27&&nextToken!=EOF)
+    if(nextToken != 27&&nextToken!=EOF) {
         printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-    else if(nextToken==27)
+        fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
+    }
+    else if(nextToken==27)  {
         printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
-    else
+        fprintf(lex, "line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
+    }
+    else    {
         printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
+        fprintf(lex, "line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
+    }
+    
     
     return nextToken;
 }
 
 void main(int argc, const char * argv[]) {
-    check['+']=10;
-    check['-']=11;
-    check['*']=12;
-    check['/']=13;
-    check['<']=14;
-    check['>']=16;
-    check['=']=20;
-    check['(']=21;
-    check[')']=22;
-    check[',']=23;
-    check[';']=24;
-    check['#']=28;
-    check['.']=29;
-    check['{']=30;
-    check['}']=31;
-    check['!']=36;
-    check['&']=37;
-    check['|']=38;
+    lex=fopen("lex.txt", "w");
+    systable =fopen("systable.txt", "w");
+    error=fopen("error.txt", "w");
     if (argc<2)
     {
         printf("ERROR:input file name is needed.\n");
