@@ -296,14 +296,16 @@ int lexer(){
     else if(nextToken==27)  {
         printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
         fprintf(lex, "line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
+        fprintf(systable, "%02d\t%02d\t%s:",nextToken,line-1,classcifier(nextToken));
     }
     else if(nextToken==EOF) {
         printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
         fprintf(lex, "line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
+        fprintf(systable, "%02d\t%02d\t\文件末尾:",nextToken,line);
     }
     else    {
         printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-        fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
+        fprintf(systable, "%02d\t%02d\t\%s:",nextToken,line,classcifier(nextToken));
     }
 
     return nextToken;
@@ -313,6 +315,7 @@ void main(int argc, const char * argv[]) {
     lex=fopen("lex.txt", "w");
     systable =fopen("systable.txt", "w");
     error=fopen("error.txt", "w");
+    fprintf(systable,"符号表\n编号\t行号\t名称\n");
     if (argc<2){
         printf("ERROR:input file name is needed.\n");
         exit(0);
