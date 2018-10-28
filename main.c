@@ -224,7 +224,7 @@ int checkSymbol(char ch, char nextCh){
         default:
             addChar();
             printf("ERROR:Unknown Character:%c\n",nextChar);
-            fprintf(error,"ERROR:Unknown Character:%c\n",nextChar);
+            fprintf(error,"error: line %2d 含有非法字符 :%c\n",line,nextChar);
             nextToken=$ERROR;
     }
     if(nextToken!=EOF)
