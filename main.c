@@ -289,22 +289,23 @@ int lexer(){
             lexeme[3] = 0;
             break;
     }
-    if(nextToken != 27&&nextToken!=EOF) {
-        printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-        fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
+    
+    if (nextToken==40) {
+        ;
     }
     else if(nextToken==27)  {
         printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
         fprintf(lex, "line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
     }
-    else if(nextToken==40)  {
-        
-    }
-    else    {
+    else if(nextToken==EOF) {
         printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
         fprintf(lex, "line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
     }
-    
+    else    {
+        printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
+        fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
+    }
+
     return nextToken;
 }
 
