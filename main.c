@@ -223,7 +223,7 @@ int checkSymbol(char ch, char nextCh){
             nextToken=EOF;
         default:
             addChar();
-            printf("ERROR:Unknown Character:%c\n",nextChar);
+            printf("error: line %2d 含有非法字符 :%c\n",line,nextChar);
             fprintf(error,"error: line %2d 含有非法字符 :%c\n",line,nextChar);
             nextToken=$ERROR;
     }
