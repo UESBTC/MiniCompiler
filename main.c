@@ -20,6 +20,9 @@ int line = 1;                //计数器，记录行数
 
 
 FILE *inFile;
+FILE *lex;
+FILE *systable;
+FILE *error;
 
 enum{
     $SYMBOL=1,$CONSTANT,$INT,$IF,$ELSE,$WHILE,$FOR,$READ,$WRITE,
@@ -285,16 +288,26 @@ int lexer(){
             lexeme[3] = 0;
             break;
     }
-    if(nextToken != 32&&nextToken!=EOF)
+    if(nextToken != 27&&nextToken!=EOF) {
         printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-    else if(nextToken==32)
-        printf("line %02d:(%02d,%03d) %s: \\n \n\n",line-1,nextToken,num[nextToken],classcifier(nextToken));
-    else
+        fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
+    }
+    else if(nextToken==27)  {
+        printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
+        fprintf(lex, "line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
+    }
+    else    {
         printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
+        fprintf(lex, "line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
+    }
+    
     return nextToken;
 }
 
 void main(int argc, const char * argv[]) {
+    lex=fopen("lex.txt", "w");
+    systable =fopen("systable.txt", "w");
+    error=fopen("error.txt", "w");
     if (argc<2){
         printf("ERROR:input file name is needed.\n");
         exit(0);
