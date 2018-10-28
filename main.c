@@ -306,7 +306,7 @@ int lexer(){
     else    {
         printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
         fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-        fprintf(systable, "%02d\t%02d\t%s\n:",nextToken,line,classcifier(nextToken));
+        fprintf(systable, "%02d\t%02d\t%s\n",nextToken,line,classcifier(nextToken));
     }
 
     return nextToken;
