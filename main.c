@@ -296,6 +296,8 @@ int lexer(){
         printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
         fprintf(lex, "line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
     }
+    else if(nextToken==40)
+        ;
     else    {
         printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
         fprintf(lex, "line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
