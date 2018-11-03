@@ -27,9 +27,8 @@ int tail = 0;
 FILE* inFile;
 
 int main(int argc,const char * argv[]) {
-    static char sym;
+    char sym;
     char* p_sym = &sym;
-    
     inFile=fopen(argv[1],"r");
     
     if (inFile==NULL) {
@@ -43,7 +42,9 @@ int main(int argc,const char * argv[]) {
     
     rewind(inFile);          //注意这里必须把inFile指针指回文件开头
     advance(p_sym);
-    while(sym != EOF) {
+    
+    while(*p_sym != EOF) {
+
         E(p_sym);
     }
     
@@ -106,13 +107,14 @@ void advance(char* p_sym) {
         while(*p_sym == ' ' || *p_sym == '\t')
             *p_sym = getc(inFile);
     }
+    printf("\n!!!%c!!!\n", *p_sym);
 }
 
 void E(char* p) {
     char sym = *p;
     printf("=================================================\n");
     printf("使用的产生式：E --> TE\'\n");
-    outputCur(p);
+    //outputCur(p);
     printf("=================================================\n");
     T(p);
     E1(p);
@@ -123,7 +125,7 @@ void E1(char* p) {
     if(sym == '+') {
         printf("=================================================\n");
         printf("使用的产生式：E\' --> +TE\'\n");
-        outputCur(p);
+        //outputCur(p);
         printf("=================================================\n");
         advance(p);
         T(p);
@@ -132,11 +134,17 @@ void E1(char* p) {
     else if(sym == '-') {
         printf("=================================================\n");
         printf("使用的产生式：E\' --> -TE\'\n");
-        outputCur(p);
+        //outputCur(p);
         printf("=================================================\n");
         advance(p);
         T(p);
         E1(p);
+    }
+    else{
+        printf("=================================================\n");
+        printf("使用的产生式：E\' --> ε\n");
+        ////outputCur(p);
+        printf("=================================================\n");
     }
 }
 
@@ -144,7 +152,7 @@ void T(char* p) {
     char sym = *p;
     printf("=================================================\n");
     printf("使用的产生式：T --> FT\'\n");
-    outputCur(p);
+    //outputCur(p);
     printf("=================================================\n");
     F(p);
     T1(p);
@@ -155,7 +163,7 @@ void T1(char* p) {
     if(sym == '*') {
         printf("=================================================\n");
         printf("使用的产生式：T\' --> *FT\'\n");
-        outputCur(p);
+        //outputCur(p);
         printf("=================================================\n");
         advance(p);
         F(p);
@@ -164,11 +172,17 @@ void T1(char* p) {
     else if(sym == '/') {
         printf("=================================================\n");
         printf("使用的产生式：T\' --> *FT\'\n");
-        outputCur(p);
+        //outputCur(p);
         printf("=================================================\n");
         advance(p);
         F(p);
         T1(p);
+    }
+    else{
+        printf("=================================================\n");
+        printf("使用的产生式：T\' --> ε\n");
+        ////outputCur(p);
+        printf("=================================================\n");
     }
 }
 
@@ -177,7 +191,7 @@ void F(char* p) {
     if(sym == '(') {
         printf("=================================================\n");
         printf("使用的产生式：F --> (E)\n");
-        outputCur(p);
+        //outputCur(p);
         printf("=================================================\n");
         advance(p);
         E(p);
@@ -191,7 +205,7 @@ void F(char* p) {
     else if(sym == 'i') {
         printf("=================================================\n");
         printf("使用的产生式：F --> i\n");
-        outputCur(p);
+        //outputCur(p);
         printf("=================================================\n");
         advance(p);
     }
