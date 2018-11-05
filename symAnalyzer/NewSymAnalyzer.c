@@ -18,9 +18,7 @@ char outQue();                //出队
 void showQue();               //显示队列
 
 void outputCur(char* p_sym);
-
-
-
+int count = 0;                //计数器，记录当前分析字符的索引
 char symQue[MAX_LEN];
 int head = 0;
 int tail = 0;
@@ -40,15 +38,16 @@ int main(int argc,const char * argv[]) {
     initQue(p_sym);
     showQue();
     
+    
     rewind(inFile);          //注意这里必须把inFile指针指回文件开头
+    count = 0;
     advance(p_sym);
     
-    while(*p_sym != EOF) {
-
+    //while(*p_sym != EOF) {
         E(p_sym);
-    }
+    //}
     
-
+    return 0;
 }
 
 void inQue(char* p_sym) {
@@ -85,17 +84,22 @@ char outQue() {
 }
 
 void outputCur(char* p_sym) {
-    outQue();
-    printf("已分析过的串：");
-    for(int i=0; i<tail; i++){
-        printf("%c", symQue[i]);
+    //显示已分析串
+    //printf("\ncount: %d\n", count);
+    printf("已分析串: ");
+    for(int i=0; i<count; i++) {
+        printf("%c ", symQue[i-1]);
     }
     printf("\n");
+    //显示当前字符
+    if(*p_sym == EOF)
+        printf("当前字符: EOF\n");    
+    else
+        printf("当前字符: %c\n", *p_sym);
 
-    printf("当前字符：%c\n", symQue[tail-1]);
-
-    printf("剩余串：");
-    for(int i=tail; i<head; i++){
+    //显示未分析串
+    printf("剩余串: ");
+    for(int i=count; i<head; i++) {
         printf("%c", symQue[i]);
     }
     printf("\n");
@@ -107,34 +111,33 @@ void advance(char* p_sym) {
         while(*p_sym == ' ' || *p_sym == '\t')
             *p_sym = getc(inFile);
     }
-    printf("\n!!!%c!!!\n", *p_sym);
+    count++;
+    //printf("\n!!!%c!!!\n", *p_sym);
 }
 
 void E(char* p) {
-    char sym = *p;
     printf("=================================================\n");
     printf("使用的产生式：E --> TE\'\n");
-    //outputCur(p);
+    outputCur(p);
     printf("=================================================\n");
     T(p);
     E1(p);
 }
 
 void E1(char* p) {
-    char sym = *p;
-    if(sym == '+') {
+    if(*p == '+') {
         printf("=================================================\n");
         printf("使用的产生式：E\' --> +TE\'\n");
-        //outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
         advance(p);
         T(p);
         E1(p);
     }
-    else if(sym == '-') {
+    else if(*p == '-') {
         printf("=================================================\n");
         printf("使用的产生式：E\' --> -TE\'\n");
-        //outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
         advance(p);
         T(p);
@@ -143,36 +146,34 @@ void E1(char* p) {
     else{
         printf("=================================================\n");
         printf("使用的产生式：E\' --> ε\n");
-        ////outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
     }
 }
 
 void T(char* p) {
-    char sym = *p;
     printf("=================================================\n");
     printf("使用的产生式：T --> FT\'\n");
-    //outputCur(p);
+    outputCur(p);
     printf("=================================================\n");
     F(p);
     T1(p);
 }
 
 void T1(char* p) {
-    char sym = *p;
-    if(sym == '*') {
+    if(*p == '*') {
         printf("=================================================\n");
         printf("使用的产生式：T\' --> *FT\'\n");
-        //outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
         advance(p);
         F(p);
         T1(p);
     }
-    else if(sym == '/') {
+    else if(*p == '/') {
         printf("=================================================\n");
         printf("使用的产生式：T\' --> *FT\'\n");
-        //outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
         advance(p);
         F(p);
@@ -181,35 +182,36 @@ void T1(char* p) {
     else{
         printf("=================================================\n");
         printf("使用的产生式：T\' --> ε\n");
-        ////outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
     }
 }
 
 void F(char* p) {
-    char sym = *p;
-    if(sym == '(') {
+    if(*p == '(') {
         printf("=================================================\n");
         printf("使用的产生式：F --> (E)\n");
-        //outputCur(p);
+        outputCur(p);
         printf("=================================================\n");
         advance(p);
         E(p);
-        if(sym == ')') {
+        if(*p == ')') {
             advance(p);
         }
         else {
+            //printf("\n***%c***\n", *p);
             error();
         }
     }
-    else if(sym == 'i') {
+    else if( (*p>='a' && *p<='z') || (*p>='A' && *p<='Z') || (*p>='0' && *p<='9') ) {
         printf("=================================================\n");
-        printf("使用的产生式：F --> i\n");
-        //outputCur(p);
+        printf("使用的产生式：F --> %c\n", *p);
+        outputCur(p);
         printf("=================================================\n");
         advance(p);
     }
     else{
+        //printf("\n$$$%c$$$\n", *p);
         error();
     }
 }
