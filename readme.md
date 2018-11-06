@@ -34,7 +34,6 @@
 ---
 ## 项目组成员
 - [Chenzn](https://github.com/UESBTC)
-- [Duxy](https://github.com/957001934)
 - [Huangwj](https://github.com/knsugit)
 
 ---
