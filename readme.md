@@ -35,6 +35,7 @@
 ## 项目组成员
 - [Chenzn](https://github.com/UESBTC)
 - [Huangwj](https://github.com/knsugit)
+- [Duxy](https://github.com/hk-reporter)
 
 ---
 ## 传送门
