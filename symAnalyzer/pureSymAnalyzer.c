@@ -28,6 +28,8 @@ int main(int argc,const char * argv[])  {
     InitQueue();
     OutQueue();
     E();
+    if(sym!='\0')
+        error();
     
 }
 void OutPutCur()    {
