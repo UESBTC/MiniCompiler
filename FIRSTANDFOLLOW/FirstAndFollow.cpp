@@ -77,10 +77,12 @@ void read()                /*统计文法中的终结符以及非终结符，按
         for (k=0,j=3;tmp[j];j++)
         {
             p[i].right[k++] = tmp[j];
-            if (isterminal(tmp[j]))
+            if (isterminal(tmp[j])) {
                 if (!exist(tmp[j])) termin[++VtNum] = tmp[j];
-                else
-                    if (!exist(tmp[j])) non_termin[++VnNum] = tmp[j];
+            }
+            else    {
+                if (!exist(tmp[j])) non_termin[++VnNum] = tmp[j];
+            }
         }
         p[i].right[k] = 0;
         p[i].length = k - 1;
@@ -233,18 +235,24 @@ void print_first(struct set *st)
     }
 }
 
-void compute_fellow()   {
-    int idl,idr1,idr2;
+void compute_follow()   {
+    int idl,idr1,idr2,idr;
     bool inc=true;
     add(follow[char_id(p[1].left)], '#');
     while (inc) {
         inc=false;
-        for (int i=1; i<=n; i++) {
+        for (int i=1; i<=n; i++) {//遍历产生式
             idl=char_id(p[i].left);
-            for (int j=1; p[i].right[j]; j++) {
+            for (int j=1; p[i].right[j]; j++) {//遍历产生式右边
                 idr1=char_id(p[i].right[j-1]);
                 idr2=char_id(p[i].right[j]);
-                if (idr1 < 1000) {
+                if (idr1>1000) {
+                    for (int k=1;k<=first[idr2]; k++) {
+                        if(!in(first[idl],first[idr2].elm[k]))
+                            add(first[idl],first[idr2].elm[k]);
+                    }
+                }
+                else    {
                     for (int k=1; k<=first[idr2].n; k++) {
                         if(first[idr2].elm[k]!='~'&&!in(follow[idr1], first[idr2].elm[k]))    {
                             add(follow[idr1], first[idr2].elm[k]);
@@ -255,6 +263,11 @@ void compute_fellow()   {
             }
         }
     }
+    for (int i=1; i<=n; i++) {//遍历产生式
+        idl=char_id(p[i].left);
+        
+    }
+    //遍历循环找第二条规则后的内容
 }
 
 int main()
