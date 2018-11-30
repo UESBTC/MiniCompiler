@@ -7,8 +7,7 @@
 //
 
 #define _CRT_SECURE_NO_DEPRECATE
-
-#include<iostream>
+#include <stdio.h>
 #include<string.h>
 
 #define MAX 100
@@ -16,7 +15,6 @@
 #define MaxVnNum 20    /*非终结符最大的数目*/
 #define MaxPLength 20    /*产生式右部最大长度*/
 
-using namespace std;
 
 struct product            /*产生式类型定义*/
 {
@@ -39,26 +37,26 @@ int VtNum;                    /*终结符数量*/
 int VnNum;                    /*非终结符数量*/
 
 /*判断是否为终结符*/
-inline bool isterminal(char x)
+int isterminal(char x)
 {
-    if (x >= 'A'&& x <= 'Z')    return false;
-    return true;
+    if (x >= 'A'&& x <= 'Z')    return 0;
+    return 1;
 }
 
 /*判断符号x是否出现过*/
-bool exist(char x)
+int exist(char x)
 {
     int i;
     if (isterminal(x))
     {
         for (i = 1; i <= VtNum; i++)
-            if (termin[i] == x) return true;
-        return false;
+            if (termin[i] == x) return 1;
+        return 0;
     }
     
     for (i = 1; i <= VnNum; i++)
-        if (non_termin[i] == x) return true;
-    return false;
+        if (non_termin[i] == x) return 1;
+    return 0;
 }
 
 /*读入文法*/
@@ -113,17 +111,17 @@ int char_id(char x)
     return -1;
 }
 /*判断符号idt是否在集合st里面*/
-bool in(struct set &st, char id)
+int in(struct set &st, char id)
 {
     int i;
     for (i = 1; i <= st.n; i++)
     {
         if (st.elm[i] == id)
         {
-            return true;
+            return 1;
         }
     }
-    return false;
+    return 0;
 }
 
 /*把符号e添加到集合st里面*/
@@ -136,7 +134,7 @@ void add(struct set &st, char e)
 /*求FIRST集*/
 void compute_first()
 {
-    int i, j, k, idl, idr;
+    int i, j, k=1, idl, idr;
     bool inc;
     inc = true;
     while (inc)
@@ -179,23 +177,46 @@ void compute_first()
                             inc = true;
                         }
                     }
-                    if (!in(first[idl], '~'))//有空还能往下走。没空就8行了
+                    if (!in(first[idr], '~'))//有空还能往下走。没空就8行了
                         break;
                 }
             }
-            if (p[i].right[0] == 0 || !in(first[idl], '~'))
-            /*
-             第一个条件不是很懂，我寻思着这里的“&&“是不是应该改成“||”b，即若没有右边的产生式，空就在first集里面；或者balabala
-             (改了之后果然可以了
-             若产生式右部的每一个文法符号都可以推导出空，则‘~’应属于first[idl]
-             前面已经循环过一遍了，所以如果first集里面还是没有’空‘的话，那就说明前面的每一个文法符号里边都可以推导出空，所以p[i]的first集里面也要加‘空’
-             */
-            {
-                add(first[idl], '~');
-                inc = true;
-            }
         }//对每个产生式循环结束
-    }//意思应该是first集不再增加的时候就结束
+    }
+    for (i = 1; i <= n; i++)        /*遍历所有产生式*/
+    {
+        /*
+         idl为每个产生式左部的非终结符
+         */
+        idl = char_id(p[i].left);
+        for (j = 0; p[i].right[j]; j++)            /*判断产生式右部为终结符还是非终结符*/
+        {
+            /*
+             idr为产生式右边的第j个字符
+             */
+            idr = char_id(p[i].right[j]);
+            if (idr > 1000)            /*如果当前为终结符，并且first[idl]中不包含该终结符，则把此终结符加入first[idl]中*/
+            {
+                break;
+            }
+            else                   /*否则把该非终结符的first集里面的非空元素加入first[idl]中*/
+            {
+                if (!in(first[idr], '~'))//有空还能往下走。没空就8行了
+                    break;
+            }
+        }
+        /*
+         第一个条件不是很懂，我寻思着这里的“&&“是不是应该改成“||”b，即若没有右边的产生式，空就在first集里面；或者balabala
+         (改了之后果然可以了
+         若产生式右部的每一个文法符号都可以推导出空，则‘~’应属于first[idl]
+         前面已经循环过一遍了，所以如果first集里面还是没有’空‘的话，那就说明前面的每一个文法符号里边都可以推导出空，所以p[i]的first集里面也要加‘空’
+         */
+        if (p[i].right[0] == 0 || (in(first[idr], '~')&&!in(first[idl], '~')))
+        {
+            add(first[idl], '~');
+            inc = true;
+        }
+    }
 }
 
 /*输出每个非终结符的FIRST集*/
@@ -209,6 +230,30 @@ void print_first(struct set *st)
         for (j = 1; j <= st[i].n; j++)
             printf("%c    ", st[i].elm[j]);
         printf("\n");
+    }
+}
+
+void compute_fellow()   {
+    int idl,idr1,idr2;
+    bool inc=true;
+    add(follow[char_id(p[1].left)], '#');
+    while (inc) {
+        inc=false;
+        for (int i=1; i<=n; i++) {
+            idl=char_id(p[i].left);
+            for (int j=1; p[i].right[j]; j++) {
+                idr1=char_id(p[i].right[j-1]);
+                idr2=char_id(p[i].right[j]);
+                if (idr1 < 1000) {
+                    for (int k=1; k<=first[idr2].n; k++) {
+                        if(first[idr2].elm[k]!='~'&&!in(follow[idr1], first[idr2].elm[k]))    {
+                            add(follow[idr1], first[idr2].elm[k]);
+                            inc=true;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
