@@ -77,12 +77,10 @@ void read()                /*统计文法中的终结符以及非终结符，按
         for (k=0,j=3;tmp[j];j++)
         {
             p[i].right[k++] = tmp[j];
-            if (isterminal(tmp[j])) {
+            if (isterminal(tmp[j]))
                 if (!exist(tmp[j])) termin[++VtNum] = tmp[j];
-            }
-            else    {
-                if (!exist(tmp[j])) non_termin[++VnNum] = tmp[j];
-            }
+                else
+                    if (!exist(tmp[j])) non_termin[++VnNum] = tmp[j];
         }
         p[i].right[k] = 0;
         p[i].length = k - 1;
@@ -234,40 +232,73 @@ void print_first(struct set *st)
         printf("\n");
     }
 }
-
-void compute_follow()   {
-    int idl,idr1,idr2,idr;
+void print_follow(struct set *st)
+{
+    int i, j;
+    puts("\n");
+    for (i = 1; i < VnNum; i++)
+    {
+        printf("%s(%c):    ", "FOLLOW", non_termin[i]);
+        for (j = 1; j <= st[i].n; j++)
+            printf("%c    ", st[i].elm[j]);
+        printf("\n");
+    }
+}void compute_follow()   {
+    int idl,idr1,idr2,length;
+    
     bool inc=true;
     add(follow[char_id(p[1].left)], '#');
     while (inc) {
         inc=false;
-        for (int i=1; i<=n; i++) {//遍历产生式
+        for (int i=1; i<=n; i++) {
+            int firstrun=1;
             idl=char_id(p[i].left);
-            for (int j=1; p[i].right[j]; j++) {//遍历产生式右边
+            for(length=0;p[i].right[length];length++);
+            for (int j=length-1; j>=1; j--) {//表达式右端
                 idr1=char_id(p[i].right[j-1]);
                 idr2=char_id(p[i].right[j]);
-                if (idr1>1000) {
-                    for (int k=1;k<=first[idr2]; k++) {
-                        if(!in(first[idl],first[idr2].elm[k]))
-                            add(first[idl],first[idr2].elm[k]);
-                    }
-                }
-                else    {
-                    for (int k=1; k<=first[idr2].n; k++) {
+                /*
+                 只有当两个都是非终结符的时候才可以执行
+                 */
+                if (idr1<1000&&idr2<1000) {
+                    /*
+                     如果～属于first[idr2],则两个都要加
+                     */
+                    for (int k=1; k<=first[idr2].n; k++) {//遍历first集
                         if(first[idr2].elm[k]!='~'&&!in(follow[idr1], first[idr2].elm[k]))    {
                             add(follow[idr1], first[idr2].elm[k]);
                             inc=true;
                         }
                     }
+                    if(in(first[idr2], '~')&&firstrun)    {
+                        for (int k=1; k<=follow[idl].n; k++) {
+                            if(!in(follow[idr1], follow[idl].elm[k]))   {
+                                add(follow[idr1], follow[idl].elm[k]);
+                                inc=true;
+                            }
+                        }
+                    }
+                    firstrun=0;
+                    
+                }
+                else if(idr1<1000&&idr2>1000)   {
+                    if(termin[idr2]!='~'&&!in(follow[idr1],p[i].right[j]))   {
+                        add(follow[idr1], p[i].right[j]);
+                        inc=true;
+                    }
+                }
+            }
+            int idrest=char_id(p[i].right[length-1]);
+            if (idrest<1000) {
+                for (int k=1; k<=follow[idl].n; k++) {
+                    if(!in(follow[idrest], follow[idl].elm[k]))   {
+                        add(follow[idrest], follow[idl].elm[k]);
+                        inc=true;
+                    }
                 }
             }
         }
     }
-    for (int i=1; i<=n; i++) {//遍历产生式
-        idl=char_id(p[i].left);
-        
-    }
-    //遍历循环找第二条规则后的内容
 }
 
 int main()
@@ -276,6 +307,8 @@ int main()
     show();
     compute_first();
     print_first(first);
+    compute_follow();
+    print_follow(follow);
     return 0;
 }
 
