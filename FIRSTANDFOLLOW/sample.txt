@@ -1,0 +1,11 @@
+10
+S->TB
+B->bTB
+B->~
+T->FA
+A->aFA
+A->~
+F->nF
+F->(S)
+F->t
+F->f
