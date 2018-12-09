@@ -243,7 +243,8 @@ void print_follow(struct set *st)
             printf("%c    ", st[i].elm[j]);
         printf("\n");
     }
-}void compute_follow()   {
+}
+void compute_follow()   {
     int idl,idr1,idr2,length;
     
     bool inc=true;
