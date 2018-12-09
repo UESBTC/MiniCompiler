@@ -3,46 +3,37 @@
 #include <ctype.h>
 #include <string.h>
 
-int charClass;
+int charClass;               //字符的类型
 #define LETTER 0
 #define DIGIT 1
 #define UNKNOWN 999
 
-#define MAX_LEN 1000
-char lexeme[MAX_LEN];
+#define MAX_LEN 1000         //存储字符的数组的最大值
+char lexeme[MAX_LEN];        //存储字符的数组
 
-char nextChar;
+char nextChar;               //nextChar和next2Char配合，不断向后读取字符，（见getChar()函数）
 char next2Char;
-int lexLen;
-int nextToken;
-int num[100]={0};
-int line = 1;
+int lexLen;                  //目前读到的字符长度，如果超出MAX_LEN-2 (?),则提示过长(见addChar())
+int nextToken;               //字符编码
+int num[100]={0};            //计数器，记录各类字符出现的次数
+int line = 1;                //计数器，记录行数
 
 
 FILE *inFile;
-FILE *lex;
-FILE *symtable;
-FILE *error;
-/*
- enum:根据符号表定义的所有类别
- */
+
 enum{
     $SYMBOL=1,$CONSTANT,$INT,$IF,$ELSE,$WHILE,$FOR,$READ,$WRITE,
     $ADD,$SUB,$MUL,$DIV,$L,$LE,$G,$GE,$NE,$E,
     $ASSIGN,$LPAR,$RPAR,$COM,$SEM,$DOT,$COLON,$LB,$RB,$AP,$QM,$BS,
     $NEXTLINE,$AND,$OR,$SHARP,$PR,$NOT,$SA,$SO,
-    $ERROR,$SWITCH,$CASE,$DEFAULT,$VOID,$RETURN,$CONTINUE,$BREAK,$COMMENT
+    $ERROR,$SWITCH,$CASE,$DEFAULT,$VOID,$RETURN,$CONTINUE,$BREAK
 };
-/*
- 关键字
- */
+
 char *keywords[]={
     "int","if","else","while","for","read","write",0,
     "case","switch","case","default","void","return","continue","break"
 };
-/*
- 通过类别编号返回类别，用于最终输出词法分析最终结果
- */
+
 char * classcifier(int i){
     if(i==1)
         return "标识符";
@@ -93,23 +84,12 @@ void getChar(){
             charClass=UNKNOWN;
     }
 }
-/*
- 在空白符中不能略去换行符，因为换行符需要识别
- */
 void getNonBlank(){
-    while (nextChar == ' ' || nextChar == '\t') {
+    while (nextChar == ' ' || nextChar == '\t') { //修改空白符号的判断标准，避免isspace()吃掉换行符
         getChar();
     }
 }
-/*删注释*/
-void SkipComment(void)  {
-    getChar();
-    addChar();
-    while (nextChar!='\n') {
-        getChar();
-        addChar();
-    }
-}
+
 int checkSymbol(char ch, char nextCh){
     switch(ch){
         case'+':
@@ -127,12 +107,6 @@ int checkSymbol(char ch, char nextCh){
         case'/':
             addChar();
             nextToken=$DIV;
-            if (nextCh=='/') {
-                getChar();
-                addChar();
-                SkipComment();
-                nextToken=$COMMENT;
-            }
             break;
         case'(':
             addChar();
@@ -246,27 +220,24 @@ int checkSymbol(char ch, char nextCh){
             nextToken=EOF;
         default:
             addChar();
-            printf("error: line %2d 含有非法字符 :%c\n",line,nextChar);
-            fprintf(error,"error: line %2d 含有非法字符 :%c\n",line,nextChar);
+            printf("ERROR:Unknown Character:%c\n",nextChar);
             nextToken=$ERROR;
     }
     if(nextToken!=EOF)
         num[nextToken]++;
     return nextToken;
 }
-/*
- 关键字检测
- */
+
 void checkKeywords(char* pword){
     int i = 0;
     while(keywords[i] != 0){
         char* pkeyword = keywords[i];
-        if(strcmp(pword,pkeyword) == 0){
-            if(i<7) {
-                nextToken = 3 + i;
-                return;
-            }
-            else    {//在符号表40后又添加了关键字，为不改变符号表前24位定义，故多做分支判断识别
+        if(strcmp(pword,pkeyword) == 0){  
+            if(i<7){
+            nextToken = 3 + i;
+            return;
+            }   
+            else{
                 nextToken=40+i;
                 return;
             }
@@ -287,6 +258,8 @@ int lexer(){
                 getChar();
             }
             nextToken = $SYMBOL;
+            
+            //检查当前标识符是否是关键字
             checkKeywords(lexeme);
             break;
         case DIGIT:
@@ -312,39 +285,16 @@ int lexer(){
             lexeme[3] = 0;
             break;
     }
-    
-    if (nextToken==40||nextToken==48) {//错误处理已经在checkSymbol()内进行打印输出，若此处再次对编号为40（$ERROR）类别的单词进行输出，会造成重复识别的问题，故用空语句跳过ERROR类的输出
-        ;
-    }
-    else if(nextToken==32)  {//不希望换行符在输出时产生换行效果，故用打印“\n”来代替真正的换行符，使输出界面更加简洁
-        printf("line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
-        fprintf(lex, "line %02d:(%02d,%03d) %s: \\n \n",line-1,nextToken,num[nextToken],classcifier(nextToken));
-        fprintf(symtable, "%02d\t%02d\t%s\n",nextToken,line-1,classcifier(nextToken));
-    }
-    else if(nextToken==EOF) {//文件末尾的打印输出
-        printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
-        fprintf(lex, "line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
-        fprintf(symtable, "%02d\t%02d\t文件末尾\n",nextToken,line);
-    }
-    else    {
+    if(nextToken != 32&&nextToken!=EOF)
         printf("line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-        fprintf(lex, "line %02d:(%02d,%03d) %s: %s\n",line,nextToken,num[nextToken],classcifier(nextToken),lexeme);
-        fprintf(symtable, "%02d\t%02d\t%s\n",nextToken,line,classcifier(nextToken));
-    }
-    
+    else if(nextToken==32)
+        printf("line %02d:(%02d,%03d) %s: \\n \n\n",line-1,nextToken,num[nextToken],classcifier(nextToken));
+    else
+        printf("line %02d:(%02d,001) 文件末尾: %s\n",line,nextToken,lexeme);
     return nextToken;
 }
 
 void main(int argc, const char * argv[]) {
-    printf("陈泽宁-2017221002004\n");//学号姓名
-    /*
-     文件指针的定义
-     */
-    lex=fopen("lex.txt", "w");
-    symtable =fopen("symtable.txt", "w");
-    error=fopen("error.txt", "w");
-    
-    fprintf(symtable,"符号表\n编号\t行号\t名称\n");
     if (argc<2){
         printf("ERROR:input file name is needed.\n");
         exit(0);
@@ -360,4 +310,3 @@ void main(int argc, const char * argv[]) {
     }
     
 }
-
