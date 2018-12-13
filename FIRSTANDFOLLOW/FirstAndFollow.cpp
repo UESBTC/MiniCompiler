@@ -1,12 +1,3 @@
-//
-//  main.cpp
-//  FirstFollowCollection
-//
-//  Created by 陈泽宁 on 2018/11/27.
-//  Copyright © 2018 陈泽宁. All rights reserved.
-//
-
-#define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
 #include<string.h>
 
@@ -14,7 +5,6 @@
 #define MaxVtNum 20    /*终结符最大的数目*/
 #define MaxVnNum 20    /*非终结符最大的数目*/
 #define MaxPLength 20    /*产生式右部最大长度*/
-
 
 struct product            /*产生式类型定义*/
 {
@@ -158,7 +148,7 @@ void compute_first()
                 {
                     if (!in(first[idl], p[i].right[j]))
                     {
-                        //                        printf("Current is the terninal\n");
+                        //printf("Current is the terninal\n");
                         printf("Add %c into FIRST(%c)\n", p[i].right[j], non_termin[idl]);
                         add(first[idl], p[i].right[j]);
                         inc = true;
@@ -177,7 +167,7 @@ void compute_first()
                             inc = true;
                         }
                     }
-                    if (!in(first[idr], '~'))//有空还能往下走。没空就8行了
+                    if (!in(first[idr], '~'))
                         break;
                 }
             }
@@ -201,16 +191,11 @@ void compute_first()
             }
             else                   /*否则把该非终结符的first集里面的非空元素加入first[idl]中*/
             {
-                if (!in(first[idr], '~'))//有空还能往下走。没空就8行了
+                if (!in(first[idr], '~'))
                     break;
             }
         }
-        /*
-         第一个条件不是很懂，我寻思着这里的“&&“是不是应该改成“||”b，即若没有右边的产生式，空就在first集里面；或者balabala
-         (改了之后果然可以了
-         若产生式右部的每一个文法符号都可以推导出空，则‘~’应属于first[idl]
-         前面已经循环过一遍了，所以如果first集里面还是没有’空‘的话，那就说明前面的每一个文法符号里边都可以推导出空，所以p[i]的first集里面也要加‘空’
-         */
+
         if (p[i].right[0] == 0 || (in(first[idr], '~')&&!in(first[idl], '~')))
         {
             add(first[idl], '~');
@@ -313,8 +298,6 @@ int main()
     return 0;
 }
 
-// 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
-// 调试程序: F5 或调试 >“开始调试”菜单
 
 
 
