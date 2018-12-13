@@ -1,13 +1,6 @@
-//
-//  main.c
-//  PredictSet
-//
-//  Created by ÈôàÊ≥ΩÂÆÅ on 2018/12/9.
-//  Copyright ¬© 2018 ÈôàÊ≥ΩÂÆÅ. All rights reserved.
-//
-
 #include <stdio.h>
 #define MAX 1000
+int count=0;
 char Queue[MAX];
 char Stack[MAX];
 int head=0;
@@ -18,29 +11,42 @@ struct PredicSet    {
     char right[10];
     int rlength;
 } predicSet[5][8];
+
+void addQueue(char c);
+void QueueInitial(void);
+char outQueue(void);
+void pushStack(char c);
+char outStack(void);
+void StackInitial(void);
+void PredicSetInitial(void);
+int encoder(char c);
+int isNonTermin(char c);
+void showStep(char oriL, char oriR);
+void Solver(void);
+
 void addQueue(char c) {
     Queue[head++]=c;
 }
-void QueueInitial() {
+void QueueInitial(void) {
     char c;
     while ((c=getchar())!='\n') {
         addQueue(c);
     }
 }
-char outQueue() {
+char outQueue(void) {
     return Queue[tail++];
 }
 void pushStack(char c)    {
     Stack[top++]=c;
 }
-char outStack() {
+char outStack(void) {
     return Stack[--top];
 }
-void StackInitial() {
+void StackInitial(void) {
     pushStack('#');
     pushStack('S');
 }
-void PredicSetInitial() {
+void PredicSetInitial(void) {
     predicSet[0][2].left='S';
     predicSet[0][2].right[0]='T';
     predicSet[0][2].right[1]='B';
@@ -174,11 +180,39 @@ int isNonTermin(char c)    {
     }
     return 0;
 }
-void Solver()   {
+void showStep(char oriL, char oriR) {
+    printf("\n");
+    printf("%d\t", count++);
+    for(int i=0; i<=top; i++){
+        printf("%c", Stack[i]);
+    }
+    printf("\t");
+    for(int j=tail; j<=head; j++){
+        printf("%c", Queue[j]);
+    }
+    printf("\t");
+    if(isNonTermin(Stack[top])){
+        printf("%c->", oriL);
+        int k=0;
+        for(; k<=predicSet[encoder(oriL)][encoder(oriR)].rlength-1; k++) {
+            printf("%c", predicSet[encoder(oriL)][encoder(oriR)].right[k]);
+        }
+    }
+    else {
+        if(oriL == oriR) {
+            printf("∆•≈‰µΩ%c", oriL);
+        }
+        else {
+            printf("∆•≈‰ ß∞‹");
+        }
+    }
+}
+void Solver(void)   {
     char oriR,oriL;
     while(1) {
         oriL=outStack();
         oriR=Queue[tail];
+        showStep(oriL, oriR);
         if(isNonTermin(oriL)) {
             if (predicSet[encoder(oriL)][encoder(oriR)].right[0]!='~') {
                 int i=predicSet[encoder(oriL)][encoder(oriR)].rlength-1;
@@ -189,11 +223,11 @@ void Solver()   {
         }
         else    {
             if(oriL!=oriR)  {
-                printf("ÈîôËØØ\n");
+                printf("\n ‰»Î¥Æ¥ÌŒÛ\n");
                 break;
             }
             else if(oriL=='#'&&oriR=='#')   {
-                printf("Ê≠£Á°Æ\n");
+                printf("\n ‰»Î¥Æ’˝»∑\n");
                 break;
             }
             else    {
@@ -202,11 +236,12 @@ void Solver()   {
         }
     }
 }
-int main(int argc, const char * argv[]) {
-    printf("Please Input:");
+
+int main(void) {
     QueueInitial();
     StackInitial();
     PredicSetInitial();
+    printf("\n≤Ω÷Ë\tœ¬Õ∆’ª\t ‰»Î¥Æ\t≤˙…˙ Ω");
     Solver();
     return 0;
 }
