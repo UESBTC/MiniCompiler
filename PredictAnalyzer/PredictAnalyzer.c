@@ -13,11 +13,83 @@ char Stack[MAX];
 int head=0;
 int tail=0;
 int top=0;
+int step=0;
 struct PredicSet    {
     char left;
     char right[10];
     int rlength;
 } predicSet[5][8];
+void PrintStack()   {
+    for (int i=0; i<top; i++) {
+        printf("%c",Stack[i]);
+    }
+}
+void PrintQueue()   {
+    for (int i=tail; i<head; i++) {
+        printf("%c",Queue[i]);
+    }
+}
+int encoder(char c)    {
+    switch (c) {
+        case 'S':
+        case 'a':
+            return 0;
+            break;
+        case 'B':
+        case 'b':
+            return 1;
+            break;
+        case 'T':
+        case 'n':
+            return 2;
+            break;
+        case 'A':
+        case '(':
+            return 3;
+            break;
+        case 'F':
+        case ')':
+            return 4;
+            break;
+        case 't':
+            return 5;
+            break;
+        case 'f':
+            return 6;
+            break;
+        case '#':
+            return 7;
+            break;
+        default:
+            return -1;
+    }
+}
+void PrintPredictSet()  {
+    
+    char oriL=Stack[top-1];
+    char oriR=Queue[tail];
+    if (oriL==oriR) {
+        printf("匹配到%c",oriL);
+    }
+    else    {
+        printf("%c->",oriL);
+        for (int i=0; i<predicSet[encoder(oriL)][encoder(oriR)].rlength; i++) {
+            printf("%c",predicSet[encoder(oriL)][encoder(oriR)].right[i]);
+        }
+    }
+    
+}
+void PrintPresent() {
+    printf("%d",step++);
+    printf("\t");
+    PrintStack();
+    printf("  \t");
+    PrintQueue();
+    printf("    \t");
+    PrintPredictSet();
+    printf("\n");
+    
+}
 void addQueue(char c) {
     Queue[head++]=c;
 }
@@ -133,41 +205,6 @@ void PredicSetInitial() {
     predicSet[4][6].right[0]='f';
     predicSet[4][6].rlength=1;
 }
-int encoder(char c)    {
-    switch (c) {
-        case 'S':
-        case 'a':
-            return 0;
-            break;
-        case 'B':
-        case 'b':
-            return 1;
-            break;
-        case 'T':
-        case 'n':
-            return 2;
-            break;
-        case 'A':
-        case '(':
-            return 3;
-            break;
-        case 'F':
-        case ')':
-            return 4;
-            break;
-        case 't':
-            return 5;
-            break;
-        case 'f':
-            return 6;
-            break;
-        case '#':
-            return 7;
-            break;
-        default:
-            return -1;
-    }
-}
 int isNonTermin(char c)    {
     if (c>='A'&&c<='Z') {
         return 1;
@@ -177,6 +214,7 @@ int isNonTermin(char c)    {
 void Solver()   {
     char oriR,oriL;
     while(1) {
+        PrintPresent();
         oriL=outStack();
         oriR=Queue[tail];
         if(isNonTermin(oriL)) {
@@ -197,7 +235,7 @@ void Solver()   {
                 break;
             }
             else    {
-                outQueue();
+                outQueue();//相等但不都是#
             }
         }
     }
@@ -207,6 +245,7 @@ int main(int argc, const char * argv[]) {
     QueueInitial();
     StackInitial();
     PredicSetInitial();
+    printf("步骤\t下推栈\t输入串\t\t产生式\n");
     Solver();
     return 0;
 }
